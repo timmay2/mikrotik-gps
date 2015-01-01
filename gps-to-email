@@ -1,0 +1,122 @@
+:local email "myuser@mydomain.com";
+:global gpstext [/file get gps.txt contents];
+:local longstart [:find $gpstext "longitude" -1];
+:local longend [:find $gpstext "\n" $longstart];
+:local latstart [:find $gpstext "latitude" -1];
+:local latend [:find $gpstext "\n" $latstart];
+:local validstart [:find $gpstext "valid" -1];
+:local validend [:find $gpstext "\n" $validstart];
+:local valid false;
+:local zeros "";
+
+:if ([:find $gpstext "yes" $validstart] > 0) do={:set valid true;};
+
+:global longitude [:pick $gpstext ($longstart + 11) $longend];
+:local degreestart [:find $longitude " " -1];
+:local minutestart [:find $longitude " " $degreestart];
+:local secondstart [:find $longitude "'" $minutestart];
+
+:local secondend;
+:local secfract;
+
+:if ([:len [:find $longitude "." 0]] < 1) do={
+    :set secondend [:find $longitude "'" $secondstart];
+    :set secfract "0";
+} else={
+    :set secondend [:find $longitude "." $secondstart];
+    :set secfract [:pick $longitude ($secondend + 1) ($secondend + 2)];
+};
+
+:local longdegree;
+:local longdegreelink;
+
+:if ([:pick $longitude 0 1] = "W") do={
+    :set longdegree "-";
+    :set longdegreelink "W";
+} else={
+    :set longdegree "+";
+    :set longdegreelink "E";
+};
+
+:set longdegree ($longdegree . [:pick $longitude 2 $minutestart]);
+:set longdegreelink ($longdegreelink . [:pick $longitude 2 $minutestart]);
+:local longmin [:pick $longitude ($minutestart + 1) $secondstart];
+:local longsec [:pick $longitude ($secondstart + 2) $secondend];
+:local longfract ((([:tonum $longmin] * 6000) + ([:tonum $longsec] * 100) + ([:tonum $secfract] * 10) ) / 36);
+
+:while (([:len $zeros] + [:len $longfract]) < 4) do={
+    :set zeros ($zeros . "0");
+};
+
+:global newlong ($longdegree . "." . $zeros . $longfract);
+:global newlonglink ($longdegreelink . "." . $zeros . $longfract);
+
+:global latitude [:pick $gpstext (latstart + 10) $latend];
+:set degreestart [:find $latitude " " -1];
+:set minutestart [:find $latitude " " $degreestart];
+:set secondstart [:find $latitude "'" $minutestart];
+
+:if ([:len [:find $latitude "." 0]] < 1) do={
+    :set secondend [:find $latitude "'" $secondstart];
+    :set secfract "0";
+} else={
+    :set secondend [:find $latitude "." $secondstart];
+    :set secfract [:pick $latitude ($secondend + 1) ($secondend +2)];
+};
+
+:local latdegree;
+:local latdegreelink;
+
+:if ([:pick $latitude 0 1] = "N") do={
+    :set latdegree "+";
+    :set latdegreelink "N";
+} else={
+    :set latdegree "-";
+    :set latdegreelink "S";
+};
+
+:set latdegree ($latdegree . [:pick $latitude 2 $minutestart]);
+:set latdegreelink ($latdegreelink . [:pick $latitude 2 $minutestart]);
+:local latmin [:pick $latitude ($minutestart + 1) $secondstart];
+:local latsec [:pick $latitude ($secondstart + 2) $secondend];
+:local latfract ((([:tonum $latmin] * 6000) + ([:tonum $latsec] * 100) +([:tonum $secfract] * 10)) / 36);
+
+:set zeros "";
+
+:while (([:len $zeros] + [:len $latfract]) < 4) do={
+    :set zeros ($zeros . "0");
+};
+
+:global newlat ($latdegree . "." . $zeros . $latfract);
+:global newlatlink ($latdegreelink . "." . $zeros . $latfract);
+
+:global coordinates ($newlong . "," . $newlat);
+
+:global linkout "http://maps.google.com?q=$newlatlink+$newlonglink";
+:global SMlinkout "http://www.openstreetmap.org/?lat=$newlat&lon=$newlong&zoom=8&layers=M";
+
+:global kmlout "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<kml xmlns=\"http://www.opengis.net/kml/2.2\">
+  <Placemark>
+    <name>My router</name>
+    <description>My router's location</description>
+    <Point>
+      <coordinates>$coordinates</coordinates>
+    </Point>
+  </Placemark>
+</kml>
+";
+
+:if (valid) do={
+    :global oldpos;
+
+    :if ($oldpos != $coordinates) do={
+        /file set [/file find name=gps.kml] contents=$kmlout
+        /tool e-mail
+        send to=$email subject="Router move" body="Moved to $latitude $longitude\r\n$linkout\r\n$SMlinkout" file=gps.kml
+        :set oldpos $coordinates;
+     };
+} else={
+         /tool e-mail
+         send to=$email subject="Router gps position invalid" body="Router gps position invalid"
+};
