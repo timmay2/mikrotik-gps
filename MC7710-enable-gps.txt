@@ -1,0 +1,45 @@
+1 - Turn off "DirectiIP" mode.
+/port firmware set ignore-directip-modem=yes
+
+2 - Restart RouterOS.
+/system reboot
+
+3 - Open a terminal to the modem on the 3 channel.
+/system serial-terminal usb1 channel=3
+
+4 - Run the following AT commands.
+AT!ENTERCND="A710"
+AT!GPSAUTOSTART=1,1,255,1000,1
+
+5 - Close the terminal session
+> Ctrl+A >>>> Q
+
+6 - Turn on "DirectiIP" mode.
+/port firmware set ignore-directip-modem=no
+
+7 - Restart RouterOS.
+/system reboot
+
+8 - Enable GPS.
+/system gps set port=usb1 channel=0 enabled=yes
+
+9 - Test the GPS is working.
+/system gps monitor
+
+[admin@MikroTik] > system gps monitor                             
+        date-and-time: jan/01/2015 23:24:54
+             latitude: N XX XX' XX.XXX''
+            longitude: E XX XX' XX.XXX''
+             altitude: 20.600000m
+                speed: 0.000000 km/h
+  destination-bearing: none
+         true-bearing: 180.699997 deg. True
+     magnetic-bearing: 180.699997 deg. Mag
+                valid: yes
+           satellites: 7
+-- [Q quit|D dump|C-z pause]
+
+If you see the above with latitude and longitude coordinates then GPS is working.
+Copy and paste these to Google maps to check the accuracy.
+
+NOTE: You will need a GPS antenna connected to the middle "GPS" u.fl connector and antenna will need to be outside to work.
