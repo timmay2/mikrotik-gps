@@ -1,4 +1,4 @@
-system gps monitor file="gps.txt";
+:system gps monitor file="gps.txt";
 
 :local email "myuser@mydomain.com";
 :global gpstext [/file get gps.txt contents];
