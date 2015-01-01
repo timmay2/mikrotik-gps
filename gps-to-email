@@ -1,5 +1,10 @@
+system gps monitor file="gps.txt";
+
 :local email "myuser@mydomain.com";
 :global gpstext [/file get gps.txt contents];
+:local datestart [:find $gpstext "time: "];
+:local dateend [:find $gpstext "latitude"];
+:local date [:pick $gpstext ($datestart +6) ($dateend -14)]
 :local longstart [:find $gpstext "longitude" -1];
 :local longend [:find $gpstext "\n" $longstart];
 :local latstart [:find $gpstext "latitude" -1];
@@ -8,6 +13,21 @@
 :local validend [:find $gpstext "\n" $validstart];
 :local valid false;
 :local zeros "";
+
+:interface ethernet print detail from=ether1 file=eth1details.txt
+:global eth1details [/file get "eth1details.txt" contents];
+:local macstart [:find $eth1details "orig"];
+:local mac [:pick $eth1details ($macstart +17) ($macstart +34)];
+
+:local identity [:system identity get value-name=name];
+:interface lte info lte1 file="lte1info.txt"
+:local lte1info [:file get lte1info.txt contents];
+:local sigstart [:find $lte1info "signal"];
+:local sigend [:find $lte1info "dBm" $sigstart];
+:local signal [:pick $lte1info ($sigstart +16) ($sigend +3)];
+:local techstart [:find $lte1info "access"];
+:local techend [:find $lte1info "\n" $techstart];
+:local technology [:pick $lte1info ($techstart +19) ($techend)];
 
 :if ([:find $gpstext "yes" $validstart] > 0) do={:set valid true;};
 
@@ -113,10 +133,10 @@
     :if ($oldpos != $coordinates) do={
         /file set [/file find name=gps.kml] contents=$kmlout
         /tool e-mail
-        send to=$email subject="Router move" body="Moved to $latitude $longitude\r\n$linkout\r\n$SMlinkout" file=gps.kml
+        send to=$email subject="$identity GPS position changed" body="$mac Moved to $latitude $longitude\r\n$linkout\r\n$SMlinkout\r\nSignal: $signal\r\nTechnology: $technology\r\nDate and Time: $date" file=gps.kml
         :set oldpos $coordinates;
      };
 } else={
          /tool e-mail
-         send to=$email subject="Router gps position invalid" body="Router gps position invalid"
+         send to=$email subject="$identity GPS position invalid" body="$identity GPS position invalid at $date"
 };
