@@ -1,6 +1,8 @@
-:system gps monitor file="gps.txt";
-
+# CHANGE BELOW E-MAIL ADDRESS
 :local email "myuser@mydomain.com";
+
+# Get GPS info and find variables
+:system gps monitor file="gps.txt";
 :global gpstext [/file get gps.txt contents];
 :local datestart [:find $gpstext "time: "];
 :local dateend [:find $gpstext "latitude"];
@@ -14,12 +16,16 @@
 :local valid false;
 :local zeros "";
 
+# Get Ethernet details and set mac variable
 :interface ethernet print detail from=ether1 file=eth1details.txt
 :global eth1details [/file get "eth1details.txt" contents];
 :local macstart [:find $eth1details "orig"];
 :local mac [:pick $eth1details ($macstart +17) ($macstart +34)];
 
+# Get identity variable
 :local identity [:system identity get value-name=name];
+
+# Get LTE1 info, set signal and technology variables
 :interface lte info lte1 file="lte1info.txt"
 :local lte1info [:file get lte1info.txt contents];
 :local sigstart [:find $lte1info "signal"];
