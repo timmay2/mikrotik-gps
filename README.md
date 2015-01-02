@@ -7,6 +7,11 @@ Requires a Mikrotik RoutherBoard + USB GPS device or LTE modem with built-in GPS
 
 Testing done using a RB912UAG-2HPnD with Sierra Wireless MC7710 (FW version needs to be "03.05.24" and GPS autostart NMEA output needs to be enabled. See "MC7710-enable-gps.txt" for instructions.
 
+/!\ PLEASE NOTE /!\
+-------------
+
+The GPS package doesn't work correctly in the current firmware release (RouterOS v6.24) you'll need to upgrade to "RouterOS v6.25rc" once available and the final release as soon as that is available.
+
 gps-to-email
 ------------
 
