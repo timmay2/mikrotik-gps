@@ -1,6 +1,7 @@
-:system gps monitor file="gps.txt";
-
+# CHANGE BELOW E-MAIL ADDRESS
 :local email "myuser@mydomain.com";
+
+:system gps monitor file="gps.txt";
 :global gpstext [/file get gps.txt contents];
 :local longstart [:find $gpstext "longitude" -1];
 :local longend [:find $gpstext "\n" $longstart];
