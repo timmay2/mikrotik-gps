@@ -42,4 +42,5 @@ AT!GPSAUTOSTART=1,1,255,1000,1
 If you see the above with latitude and longitude coordinates then GPS is working.
 Copy and paste these to Google maps to check the accuracy.
 
-NOTE: You will need a GPS antenna connected to the middle "GPS" u.fl connector and the GPS antenna will need to be outside (with a clear view of the sky) to work.
+NOTE: You will need a GPS antenna connected to the middle "GPS" u.fl connector and the GPS antenna will need to be outside 
+(with a clear view of the sky) to work.
