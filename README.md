@@ -5,7 +5,7 @@ Scripts for tracking Mikrotik Routers by sending GPS coordinates to an e-mail ad
 
 Requires a Mikrotik RoutherBoard + USB GPS device or LTE modem with built-in GPS receiver.
 
-gpt-to-email script code originaly from the Mikrotik Wiki:-
+gps-to-email script originally from the Mikrotik Wiki:-
 http://wiki.mikrotik.com/wiki/GPS_text_file_converter_to_Google_Earth/Maps
 
 Testing done using a RB912UAG-2HPnD with Sierra Wireless MC7710 (FW version needs to be "03.05.24" and GPS autostart NMEA output needs to be enabled. See "MC7710-enable-gps.txt" for instructions.
