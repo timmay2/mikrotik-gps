@@ -1,0 +1,146 @@
+# CHANGE BELOW SERVER BELOW TO YOUR SERVERS DOMAIN OR IP ADDRESS 
+:local server "change.me.com";
+
+# Get GPS info and find variables
+:system gps monitor file="gps.txt";
+:global gpstext [/file get gps.txt contents];
+:local datestart [:find $gpstext "time: "];
+:local dateend [:find $gpstext "latitude"];
+:local date [:pick $gpstext ($datestart +6) ($dateend -14)]
+:local longstart [:find $gpstext "longitude" -1];
+:local longend [:find $gpstext "\n" $longstart];
+:local latstart [:find $gpstext "latitude" -1];
+:local latend [:find $gpstext "\n" $latstart];
+:local validstart [:find $gpstext "valid" -1];
+:local validend [:find $gpstext "\n" $validstart];
+:local valid false;
+:local zeros "";
+
+# Get Ethernet details and set mac variable
+:interface ethernet print detail from=ether1 file=eth1details.txt
+:global eth1details [/file get "eth1details.txt" contents];
+:local macstart [:find $eth1details "orig"];
+:local mac [:pick $eth1details ($macstart +17) ($macstart +34)];
+
+# Get identity variable
+:local identity [:system identity get value-name=name];
+
+# Get LTE1 info, set signal and technology variables
+:interface lte info lte1 file="lte1info.txt"
+:local lte1info [:file get lte1info.txt contents];
+:local sigstart [:find $lte1info "signal"];
+:local sigend [:find $lte1info "dBm" $sigstart];
+:local signal [:pick $lte1info ($sigstart +16) ($sigend +3)];
+:local techstart [:find $lte1info "access"];
+:local techend [:find $lte1info "\n" $techstart];
+:local technology [:pick $lte1info ($techstart +19) ($techend)];
+
+:if ([:find $gpstext "yes" $validstart] > 0) do={:set valid true;};
+
+:global longitude [:pick $gpstext ($longstart + 11) $longend];
+:local degreestart [:find $longitude " " -1];
+:local minutestart [:find $longitude " " $degreestart];
+:local secondstart [:find $longitude "'" $minutestart];
+
+:local secondend;
+:local secfract;
+
+:if ([:len [:find $longitude "." 0]] < 1) do={
+    :set secondend [:find $longitude "'" $secondstart];
+    :set secfract "0";
+} else={
+    :set secondend [:find $longitude "." $secondstart];
+    :set secfract [:pick $longitude ($secondend + 1) ($secondend + 2)];
+};
+
+:local longdegree;
+:local longdegreelink;
+
+:if ([:pick $longitude 0 1] = "W") do={
+    :set longdegree "-";
+    :set longdegreelink "W";
+} else={
+    :set longdegree "+";
+    :set longdegreelink "E";
+};
+
+:set longdegree ($longdegree . [:pick $longitude 2 $minutestart]);
+:set longdegreelink ($longdegreelink . [:pick $longitude 2 $minutestart]);
+:local longmin [:pick $longitude ($minutestart + 1) $secondstart];
+:local longsec [:pick $longitude ($secondstart + 2) $secondend];
+:local longfract ((([:tonum $longmin] * 6000) + ([:tonum $longsec] * 100) + ([:tonum $secfract] * 10) ) / 36);
+
+:while (([:len $zeros] + [:len $longfract]) < 4) do={
+    :set zeros ($zeros . "0");
+};
+
+:global newlong ($longdegree . "." . $zeros . $longfract);
+:global newlonglink ($longdegreelink . "." . $zeros . $longfract);
+
+:global latitude [:pick $gpstext (latstart + 10) $latend];
+:set degreestart [:find $latitude " " -1];
+:set minutestart [:find $latitude " " $degreestart];
+:set secondstart [:find $latitude "'" $minutestart];
+
+:if ([:len [:find $latitude "." 0]] < 1) do={
+    :set secondend [:find $latitude "'" $secondstart];
+    :set secfract "0";
+} else={
+    :set secondend [:find $latitude "." $secondstart];
+    :set secfract [:pick $latitude ($secondend + 1) ($secondend +2)];
+};
+
+:local latdegree;
+:local latdegreelink;
+
+:if ([:pick $latitude 0 1] = "N") do={
+    :set latdegree "+";
+    :set latdegreelink "N";
+} else={
+    :set latdegree "-";
+    :set latdegreelink "S";
+};
+
+:set latdegree ($latdegree . [:pick $latitude 2 $minutestart]);
+:set latdegreelink ($latdegreelink . [:pick $latitude 2 $minutestart]);
+:local latmin [:pick $latitude ($minutestart + 1) $secondstart];
+:local latsec [:pick $latitude ($secondstart + 2) $secondend];
+:local latfract ((([:tonum $latmin] * 6000) + ([:tonum $latsec] * 100) +([:tonum $secfract] * 10)) / 36);
+
+:set zeros "";
+
+:while (([:len $zeros] + [:len $latfract]) < 4) do={
+    :set zeros ($zeros . "0");
+};
+
+:global newlat ($latdegree . "." . $zeros . $latfract);
+:global newlatlink ($latdegreelink . "." . $zeros . $latfract);
+
+:global coordinates ($newlong . "," . $newlat);
+
+# SEND TO SERVER IF THE COORDINATES HAVE CHANGED
+:if (valid) do={
+    :global oldpos;
+
+    :if ($oldpos != $coordinates) do={
+        {
+        :local urlstring "http://$server/mikrotikgps.php\?identity=$identity&mac=$mac&latitude=$latitude&longitude=$longitude&date=$date&dbm=$signal&technology=$technology"
+        :local urlEncoded
+
+        :for i from=0 to=([:len $urlstring] - 1) do={ 
+          :local char [:pick $urlstring $i]
+          :if ($char = " ") do={
+            :set $char "%20"
+          }
+          :if ($char = "-") do={
+            :set $char "%2D"
+          }
+          :set urlEncoded ($urlEncoded . $char)
+        }
+        :tool fetch url="$urlEncoded" mode=http;
+        }
+        :set oldpos $coordinates;
+     };
+} else={
+         /log info "gps-to-url script failed";
+};
