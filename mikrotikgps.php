@@ -12,12 +12,14 @@ $identity = mysqli_real_escape_string($con, $_GET['identity']);
 $mac = mysqli_real_escape_string($con, $_GET['mac']);
 $latitude = mysqli_real_escape_string($con, $_GET['latitude']);
 $longitude = mysqli_real_escape_string($con, $_GET['longitude']);
+$lat = mysqli_real_escape_string($con, $_GET['lat']);
+$lng = mysqli_real_escape_string($con, $_GET['lng']);
 $date = mysqli_real_escape_string($con, $_GET['date']);
 $dbm = mysqli_real_escape_string($con, $_GET['dbm']);
 $technology = mysqli_real_escape_string($con, $_GET['technology']);
 
-$sql="INSERT INTO gps (identity, mac, latitude, longitude, date, dbm, technology)
-VALUES ('$identity', '$mac', '$latitude', '$longitude', '$date', '$dbm', '$technology')";
+$sql="INSERT INTO gps (identity, mac, latitude, longitude, lat, lng, date, dbm, technology)
+VALUES ('$identity', '$mac', '$latitude', '$longitude', '$lat', '$lng', $date', '$dbm', '$technology')";
 
 if (!mysqli_query($con,$sql)) {
   die('Error: ' . mysqli_error($con));
