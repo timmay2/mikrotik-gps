@@ -124,7 +124,7 @@
 
     :if ($oldpos != $coordinates) do={
         {
-        :local urlstring "http://$server/mikrotikgps.php\?identity=$identity&mac=$mac&latitude=$latitude&longitude=$longitude&date=$date&dbm=$signal&technology=$technology"
+        :local urlstring "http://$server/mikrotikgps.php\?identity=$identity&mac=$mac&latitude=$latitude&longitude=$longitude&lat=$newlat&lng=$newlong&date=$date&dbm=$signal&technology=$technology"
         :local urlEncoded
 
         :for i from=0 to=([:len $urlstring] - 1) do={ 
