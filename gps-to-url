@@ -135,6 +135,9 @@
           :if ($char = "-") do={
             :set $char "%2D"
           }
+          :if ($char = "+") do={
+            :set $char "%2B"
+          }
           :set urlEncoded ($urlEncoded . $char)
         }
         :tool fetch url="$urlEncoded" mode=http;
