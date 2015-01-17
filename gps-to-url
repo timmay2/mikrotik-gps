@@ -145,5 +145,8 @@
         :set oldpos $coordinates;
      };
 } else={
-         /log info "gps-to-url script failed";
+         :global counter;
+         :set counter ($counter + 1);
+         :log info "GPS not valid, count = $counter";
+         :if ($counter = 12) do={:system reboot};
 };
