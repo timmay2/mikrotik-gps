@@ -25,4 +25,4 @@ The script has to be scheduled to run using "system scheduler". Depending on you
 gps-to-url
 ----------
 
-This script is a modified version of the above gps-to-email script. Instead of sending an e-mail it uses fetch to request a URL. This URL is the "mikrotikgps.php" file which uses php GET to get the data from the URL and push it into a database. This makes it possible to then use this infor to build a map using the coordinates and other data. 
+This script is a modified version of the above gps-to-email script. Instead of sending an e-mail it uses fetch to request a URL. This URL is the "mikrotikgps.php" file which uses php GET to get the data from the URL and push it into a database. This makes it possible to then use this data to build a map using the coordinates and other data. 
