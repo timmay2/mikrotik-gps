@@ -20,11 +20,7 @@ if (!$db_selected) {
   die ('Can\'t use db : ' . mysql_error());
 }
 
-// Select all the rows in the markers table
-
-// $query = "SELECT * FROM gps WHERE 1";
-// $query = "SELECT * FROM  `gps` ORDER BY  `gps`.`PID` DESC LIMIT 3";
-// $query = "SELECT * FROM  `gps` WHERE  `datetime` >  '2015-01-23 00:00:00'";
+// Select only markers that are less than a day old
  $query = "SELECT * FROM  `gps` WHERE `datetime` >= NOW() - INTERVAL 1 DAY";
 
 $result = mysql_query($query);
