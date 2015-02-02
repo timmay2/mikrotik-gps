@@ -121,7 +121,6 @@
 # SEND TO SERVER IF THE COORDINATES HAVE CHANGED
 :if (valid) do={
     :global oldpos;
-    :global counter;
 
     :if ($oldpos != $coordinates) do={
         {
@@ -144,9 +143,11 @@
         :tool fetch url="$urlEncoded" mode=http;
         }
         :set oldpos $coordinates;
+        :global counter;
         :set counter 0;
      };
 } else={
+         :global counter;
          :set counter ($counter + 1);
          :log info "GPS not valid, count = $counter";
 };
