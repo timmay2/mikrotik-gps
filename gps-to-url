@@ -13,6 +13,15 @@
 :local latend [:find $gpstext "\n" $latstart];
 :local validstart [:find $gpstext "valid" -1];
 :local validend [:find $gpstext "\n" $validstart];
+:local speedstart [:find $gpstext "speed"];
+:local speedend [:find $gpstext "." $speedstart];
+:local speed [;pick $gpstext ($speedstart +7) ($speedend +3)];
+:local altitudestart [:find $gpstext "altitude"];
+:local altitudeend [:find $gpstext "." $altitudestart];
+:local altitude [;pick $gpstext ($altitudestart +10) ($altitudeend +3)];
+:local satellitesstart [:find $gpstext "satellites"];
+:local satellitesend [:find $gpstext "\n" $satellitesstart];
+:local satellites [;pick $gpstext ($satellitesstart +12) ($satellitesend)];
 :local valid false;
 :local zeros "";
 
@@ -30,10 +39,15 @@
 :local lte1info [:file get lte1info.txt contents];
 :local sigstart [:find $lte1info "signal"];
 :local sigend [:find $lte1info "dBm" $sigstart];
-:local signal [:pick $lte1info ($sigstart +16) ($sigend +3)];
+:local signal [:pick $lte1info ($sigstart +16) ($sigend -1)];
 :local techstart [:find $lte1info "access"];
 :local techend [:find $lte1info "\n" $techstart];
-:local technology [:pick $lte1info ($techstart +19) ($techend)];
+:local techno [:pick $lte1info ($techstart +19) ($techend)];
+
+:local technology;
+:if ($techno ="GSM compact") do={[:set technology "GSM";]}
+:if ($techno ="3G") do={:set technology "UMTS";}
+:if ($techno ="Evolved 3G (LTE)") do={[:set technology "LTE";]}
 
 :if ([:find $gpstext "yes" $validstart] > 0) do={:set valid true;};
 
@@ -124,9 +138,8 @@
 
     :if ($oldpos != $coordinates) do={
         {
-        :local urlstring "http://$server/mikrotikgps.php\?identity=$identity&mac=$mac&latitude=$latitude&longitude=$longitude&lat=$newlat&lng=$newlong&date=$date&dbm=$signal&technology=$technology"
-        :local urlEncoded
-
+        :local urlstring "http://$server/mikrotikgps.php\?identity=$identity&mac=$mac&latitude=$latitude&longitude=$longitude&lat=$newlat&lng=$newlong&date=$date&dbm=$signal&technology=$technology&speed=$speed&altitude=$altitude&satellites=$satellites";
+        :local urlEncoded;
         :for i from=0 to=([:len $urlstring] - 1) do={ 
           :local char [:pick $urlstring $i]
           :if ($char = " ") do={
@@ -140,7 +153,7 @@
           }
           :set urlEncoded ($urlEncoded . $char)
         }
-        :tool fetch url="$urlEncoded" mode=http;
+        :tool fetch url="$urlEncoded" mode=http dst-path=gps-to-url;
         }
         :set oldpos $coordinates;
         :global counter;
