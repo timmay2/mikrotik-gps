@@ -21,3 +21,8 @@ gps-to-email
 Script to send the GPS coordinated to an e-mail address.
 E-Mails are only sent when the position has changed.
 The script has to be scheduled to run using "system scheduler". Depending on your requirements this could be scheduled to run the gps-to-email script every 20 seconds, 5 minutes, 30 minutes, hour or daily.
+
+gps-to-url
+----------
+
+This script is a modified version of the above gps-to-email script. Instead of sending an e-mail it uses fetch to request a URL. This URL is the "mikrotikgps.php" file which uses php GET to get the data from the URL and push it into a database. This makes it possible to then use this infor to build a map using the coordinates and other data. 
