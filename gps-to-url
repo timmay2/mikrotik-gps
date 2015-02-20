@@ -163,4 +163,7 @@
          :global counter;
          :set counter ($counter + 1);
          :log info "GPS not valid, count = $counter";
+         :if ($counter = 12) do={
+         :system routerboard usb power-reset duration=1;
+         :set counter 0;
 };
