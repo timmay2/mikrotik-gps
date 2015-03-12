@@ -1,29 +1,25 @@
 # CHANGE BELOW SERVER BELOW TO YOUR SERVERS DOMAIN OR IP ADDRESS 
 :local server "change.me.com";
 
-# Get GPS info and find variables
-:system gps monitor file="gps.txt";
-:global gpstext [/file get gps.txt contents];
-:local datestart [:find $gpstext "time: "];
-:local dateend [:find $gpstext "latitude"];
-:local date [:pick $gpstext ($datestart +6) ($dateend -14)]
-:local longstart [:find $gpstext "longitude" -1];
-:local longend [:find $gpstext "\n" $longstart];
-:local latstart [:find $gpstext "latitude" -1];
-:local latend [:find $gpstext "\n" $latstart];
-:local validstart [:find $gpstext "valid" -1];
-:local validend [:find $gpstext "\n" $validstart];
-:local speedstart [:find $gpstext "speed"];
-:local speedend [:find $gpstext "." $speedstart];
-:local speed [;pick $gpstext ($speedstart +7) ($speedend +3)];
-:local altitudestart [:find $gpstext "altitude"];
-:local altitudeend [:find $gpstext "." $altitudestart];
-:local altitude [;pick $gpstext ($altitudestart +10) ($altitudeend +3)];
-:local satellitesstart [:find $gpstext "satellites"];
-:local satellitesend [:find $gpstext "\n" $satellitesstart];
-:local satellites [;pick $gpstext ($satellitesstart +12) ($satellitesend)];
+# some variables
 :local valid false;
 :local zeros "";
+:local date;
+:local longitude;
+:local latitude;
+:local speed;
+:local altitude;
+:local satellites;
+# Get live GPS Data
+:local gpsbuf [:toarray  [/system gps  monitor as-value  ]]; :foreach k,v in=$gpsbuf do={
+ if ($k="date-and-time") do={:set date $v;}
+ if ($k="longitude") do={:set longitude $v;}
+ if ($k="latitude") do={:set latitude $v;}
+ if ($k="speed") do={:set speed $v;}
+ if ($k="altitude") do={:set altitude $v;}
+ if ($k="satellites") do={:set satellites $v;}
+ if ($k="valid" and $v=true) do={:set valid true;}
+}
 
 # Get Ethernet details and set mac variable
 :interface ethernet print detail from=ether1 file=eth1details.txt
@@ -49,9 +45,6 @@
 :if ($techno ="3G") do={:set technology "UMTS";}
 :if ($techno ="Evolved 3G (LTE)") do={[:set technology "LTE";]}
 
-:if ([:find $gpstext "yes" $validstart] > 0) do={:set valid true;};
-
-:global longitude [:pick $gpstext ($longstart + 11) $longend];
 :local degreestart [:find $longitude " " -1];
 :local minutestart [:find $longitude " " $degreestart];
 :local secondstart [:find $longitude "'" $minutestart];
@@ -91,7 +84,6 @@
 :global newlong ($longdegree . "." . $zeros . $longfract);
 :global newlonglink ($longdegreelink . "." . $zeros . $longfract);
 
-:global latitude [:pick $gpstext (latstart + 10) $latend];
 :set degreestart [:find $latitude " " -1];
 :set minutestart [:find $latitude " " $degreestart];
 :set secondstart [:find $latitude "'" $minutestart];
